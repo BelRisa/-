@@ -41,27 +41,27 @@ void draw(Sphere sphere)
 
 void move(Sphere* sphere)
 {
-    (*sphere).x += (*sphere).vx * DT;
-    (*sphere).y += (*sphere).vy * DT;
+    sphere->x += sphere->vx * DT;
+    sphere->y += sphere->vy * DT;
 }
 
-void checkCollision (Sphere* sphere)
+void checkCollision(Sphere* sphere, int windowx, int windowy)
 {
 
-    if (((*sphere).x > 800 - (*sphere).radius) or ((*sphere).x < (*sphere).radius))
+    if ((sphere->x > windowx - sphere->radius) or (sphere->x < sphere->radius))
     {
-        (*sphere).vx = - (*sphere).vx;
+        sphere->vx = - sphere->vx;
     }
 
-    if (((*sphere).y > 600 - (*sphere).radius) or ((*sphere).y < (*sphere).radius))
+    if ((sphere->y > windowy - sphere->radius) or (sphere->y < sphere->radius))
     {
-        (*sphere).vy = - (*sphere).vy;
+        sphere->vy = - sphere->vy;
     }
 }
 
-bool checkCollisionTwoSpheres(Sphere* sphere1, Sphere* sphere2)
+bool checkTwoSpheres(Sphere* sphere1, Sphere* sphere2)
 {
-    if ((*sphere1).radius + (*sphere2).radius > sqrt(pow((*sphere1).x - (*sphere2).x, 2)+ pow((*sphere1).y - (*sphere2).y, 2)))
+    if (sphere1->radius + sphere2->radius > sqrt(pow(sphere1->x - sphere2->x, 2)+ pow(sphere1->y - sphere2->y, 2)))
     {
         return true;
     }
@@ -70,19 +70,19 @@ bool checkCollisionTwoSpheres(Sphere* sphere1, Sphere* sphere2)
 
 void collisionTwoSpheres(Sphere* sphere1,  Sphere* sphere2)
 {
-    float distx = (*sphere1).x - (*sphere2).x;
-    float disty = (*sphere1).y - (*sphere2).y;
+    float distx = sphere1->x - sphere2->x;
+    float disty = sphere1->y - sphere2->y;
     float moduleDist = sqrt(distx * distx + disty * disty);
-    float projectionV1 = projectionVector((*sphere1).vx, (*sphere1).vy, distx, disty);
-    float projectionV2 = projectionVector((*sphere2).vx, (*sphere2).vy, distx, disty);
+    float projectionV1 = projectionVector(sphere1->vx, sphere1->vy, distx, disty);
+    float projectionV2 = projectionVector(sphere2->vx, sphere2->vy, distx, disty);
     float dv = projectionV1 - projectionV2;
 
     if (dv < 0)
     {
-        (*sphere2).vx +=   dv * distx / moduleDist;
-        (*sphere2).vy +=   dv * disty / moduleDist;
-        (*sphere1).vx += - dv * distx / moduleDist;
-        (*sphere1).vy += - dv * disty / moduleDist;
+        sphere2->vx +=   dv * distx / moduleDist;
+        sphere2->vy +=   dv * disty / moduleDist;
+        sphere1->vx += - dv * distx / moduleDist;
+        sphere1->vy += - dv * disty / moduleDist;
     }
 
 }
@@ -90,11 +90,14 @@ void collisionTwoSpheres(Sphere* sphere1,  Sphere* sphere2)
 
 int main()
 {
+    int windowx = 800;
+    int windowy = 600;
+
     Sphere s1 = { 200, 200, 50, 100, 56, 90, 255, 0, 0 };
     Sphere s2 = { 510, 410, 50, 100, 100, 98, 255, 255, 255 };
     Sphere s3 = { 100, 200, 50, 100, 40, 30, 255, 0, 255};
 
-    txCreateWindow(800, 600);
+    txCreateWindow(windowx, windowy);
     txSetFillColor(RGB(0, 0, 0));
 
     double mousex = 0;
@@ -128,23 +131,23 @@ int main()
 
         txEnd();
 
-        checkCollision(&s1);
-        checkCollision(&s2);
-        checkCollision(&s3);
+        checkCollision(&s1, windowx, windowy);
+        checkCollision(&s2, windowx, windowy);
+        checkCollision(&s3, windowx, windowy);
 
         move(&s1);
         move(&s2);
         move(&s3);
 
-        if (checkCollisionTwoSpheres(&s1, &s2))
+        if (checkTwoSpheres(&s1, &s2))
         {
             collisionTwoSpheres(&s1, &s2);
         }
-        if (checkCollisionTwoSpheres(&s1, &s3))
+        if (checkTwoSpheres(&s1, &s3))
         {
             collisionTwoSpheres(&s1, &s3);
         }
-        if (checkCollisionTwoSpheres(&s2, &s3))
+        if (checkTwoSpheres(&s2, &s3))
         {
             collisionTwoSpheres(&s2, &s3);
         }
