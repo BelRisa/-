@@ -2,7 +2,7 @@
 #include <cmath>
 #include <cstdlib>
 
-const float DT = 0.1;
+const float DT = 0.01;
 
 struct Sphere
 {
@@ -17,17 +17,11 @@ struct Sphere
     int b;
 };
 
-float projectionVector( float vectorX, float vectorY, float distx, float disty)
-{
-    float scalarComposition = vectorX * distx + vectorY * disty;
-    float moduleDist = pow (distx * distx + disty * disty, 0.5 );
-    float projection = scalarComposition / moduleDist;
-    return projection;
-}
 
 void draw(Sphere sphere)
 {
-    COLORREF a = txGetFillColor();
+    COLORREF OldFillColor = txGetFillColor();
+    COLORREF OldColor = txGetColor();
 
     for (int i = 1; i < sphere.N; i++)
     {
@@ -36,7 +30,9 @@ void draw(Sphere sphere)
         txCircle(sphere.x, sphere.y, sphere.radius - sphere.radius * i / sphere.N);
     }
 
-    txSetFillColor(a);
+    txSetFillColor(OldFillColor);
+    txSetColor(OldColor);
+
 }
 
 void move(Sphere* sphere)
@@ -72,26 +68,23 @@ void collisionTwoSpheres(Sphere* sphere1,  Sphere* sphere2)
 {
     float distx = sphere1->x - sphere2->x;
     float disty = sphere1->y - sphere2->y;
-    float moduleDist = sqrt(distx * distx + disty * disty);
-    float projectionV1 = projectionVector(sphere1->vx, sphere1->vy, distx, disty);
-    float projectionV2 = projectionVector(sphere2->vx, sphere2->vy, distx, disty);
-    float dv = projectionV1 - projectionV2;
 
-    float g = sqrt(distx * distx + disty * disty);
-    if (g == 0)
+    float hypotenuse = sqrt(distx * distx + disty * disty);
+    if (hypotenuse == 0)
     {
-        g = 0.01;
+        hypotenuse = 0.01;
     }
 
-    float sin = distx / g;
-    float cos = disty / g;
-        if (g < sphere1->radius + sphere2->radius)
+    float sin = distx / hypotenuse;
+    float cos = disty / hypotenuse;
+        if (hypotenuse < sphere1->radius + sphere2->radius)
         {
             float Vn1 = sphere2->vx * sin + sphere2->vy * cos;
       		float Vn2 = sphere1->vx * sin + sphere1->vy * cos;
       		float Vt1 = - sphere2->vx * cos +sphere2->vy * sin;
       		float Vt2 = - sphere1->vx * cos + sphere1->vy * sin;
-      		float dt = (sphere2->radius + sphere1->radius - g) / (Vn1 - Vn2);
+      		float dt = (sphere2->radius + sphere1->radius - hypotenuse) / (Vn1 - Vn2);
+
       		if (dt > 0.5)
       		{
                 dt = 0.5;
@@ -113,19 +106,11 @@ void collisionTwoSpheres(Sphere* sphere1,  Sphere* sphere2)
       		Vn1 = back;
 
 
-      		sphere1->vx = Vn2 * sin - Vt2 * cos / moduleDist;;
-      		sphere1->vy = Vn2 * cos + Vt2 * sin / moduleDist;;
-      		sphere2->vx = Vn1 * sin - Vt1 * cos / moduleDist;;
-      		sphere2->vy = Vn1 * cos + Vt1 * sin / moduleDist;;
+      		sphere1->vx = Vn2 * sin - Vt2 * cos;
+      		sphere1->vy = Vn2 * cos + Vt2 * sin;
+      		sphere2->vx = Vn1 * sin - Vt1 * cos;
+      		sphere2->vy = Vn1 * cos + Vt1 * sin;
         }
-
-    if (dv < 0)
-    {
-        sphere2->vx +=   dv * distx / moduleDist;
-        sphere2->vy +=   dv * disty / moduleDist;
-        sphere1->vx += - dv * distx / moduleDist;
-        sphere1->vy += - dv * disty / moduleDist;
-    }
 
 }
 
@@ -135,9 +120,9 @@ int main()
     int windowx = 800;
     int windowy = 600;
 
-    Sphere s1 = { 200, 200, 50, 100, 56, 90, 255, 0, 0 };
-    Sphere s2 = { 510, 410, 50, 100, 100, 98, 255, 255, 255 };
-    Sphere s3 = { 100, 200, 50, 100, 40, 30, 255, 0, 255};
+    Sphere s1 = { 200, 200, 50, 100, 300, 300, 255, 0, 0 };
+    Sphere s2 = { 510, 410, 50, 100, 800, 300, 255, 255, 255 };
+    Sphere s3 = { 100, 500, 50, 100, 300, 300, 255, 0, 255 };
 
     txCreateWindow(windowx, windowy);
     txSetFillColor(RGB(0, 0, 0));
@@ -157,10 +142,10 @@ int main()
 
         if (txMouseButtons() > 0 )
         {
-            s1.x = mousex;
-            s1.y = mousey;
-            s1.vx = (mousex - mouseOldx) / DT;
-            s1.vy = (mousey - mouseOldy) / DT;
+            s2.x = mousex;
+            s2.y = mousey;
+            s2.vx = (mousex - mouseOldx) / DT;
+            s2.vy = (mousey - mouseOldy) / DT;
         }
 
         txClear();
