@@ -1,5 +1,5 @@
 #include "TXLib.h"
-#include "math.h"
+#include <cmath>
 #include <cstdlib>
 
 const float DT = 0.1;
@@ -76,6 +76,48 @@ void collisionTwoSpheres(Sphere* sphere1,  Sphere* sphere2)
     float projectionV1 = projectionVector(sphere1->vx, sphere1->vy, distx, disty);
     float projectionV2 = projectionVector(sphere2->vx, sphere2->vy, distx, disty);
     float dv = projectionV1 - projectionV2;
+
+    float g = sqrt(distx * distx + disty * disty);
+    if (g == 0)
+    {
+        g = 0.01;
+    }
+
+    float sin = distx / g;
+    float cos = disty / g;
+        if (g < sphere1->radius + sphere2->radius)
+        {
+            float Vn1 = sphere2->vx * sin + sphere2->vy * cos;
+      		float Vn2 = sphere1->vx * sin + sphere1->vy * cos;
+      		float Vt1 = - sphere2->vx * cos +sphere2->vy * sin;
+      		float Vt2 = - sphere1->vx * cos + sphere1->vy * sin;
+      		float dt = (sphere2->radius + sphere1->radius - g) / (Vn1 - Vn2);
+      		if (dt > 0.5)
+      		{
+                dt = 0.5;
+            }
+      		if (dt < - 0.5)
+      		{
+                dt = - 0.5;
+            }
+            sphere1->x = sphere1->x - sphere1->vx * dt;
+      		sphere1->y = sphere1->y - sphere1->vy * dt;
+      		sphere2->x = sphere2->x - sphere2->vx * dt;
+      		sphere2->y = sphere2->y - sphere2->vy * dt;
+
+      		distx = sphere1->x - sphere2->x;
+      		disty = sphere1->y - sphere2->y;
+
+      		float back = Vn2;
+      		Vn2 = Vn1;
+      		Vn1 = back;
+
+
+      		sphere1->vx = Vn2 * sin - Vt2 * cos / moduleDist;;
+      		sphere1->vy = Vn2 * cos + Vt2 * sin / moduleDist;;
+      		sphere2->vx = Vn1 * sin - Vt1 * cos / moduleDist;;
+      		sphere2->vy = Vn1 * cos + Vt1 * sin / moduleDist;;
+        }
 
     if (dv < 0)
     {
