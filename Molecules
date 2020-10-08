@@ -3,7 +3,7 @@
 #include <cstdlib>
 
 const double DT = 0.01;
-const int M = 50;
+const int M = 10;
 
 struct Sphere
 {
@@ -19,7 +19,7 @@ struct Sphere
 };
 
 void draw(struct Sphere );
-void move(struct Sphere* );
+void move(struct Sphere* , double DT);
 void checkCollision(struct Sphere* , int windowx, int windowy);
 void collisionTwoSpheres(struct Sphere* , struct Sphere* );
 void resolveWallCollision(struct Sphere* , int windowx, int windowy);
@@ -41,7 +41,7 @@ void draw(struct Sphere sphere)
 
 }
 
-void move(struct Sphere* sphere)
+void move(struct Sphere* sphere, const double DT)
 {
     sphere->x += sphere->vx * DT;
     sphere->y += sphere->vy * DT;
@@ -72,20 +72,20 @@ bool checkTwoSpheres(struct Sphere* sphere1, struct Sphere* sphere2)
 
 void collisionTwoSpheres(struct Sphere* sphere1, struct Sphere* sphere2)
 {
-    float distx = sphere1->x - sphere2->x;
-    float disty = sphere1->y - sphere2->y;
+    double distx = sphere1->x - sphere2->x;
+    double disty = sphere1->y - sphere2->y;
 
-    float hypotenuse = sqrt(distx * distx + disty * disty);
+    double hypotenuse = sqrt(distx * distx + disty * disty);
 
-    float sin = distx / hypotenuse;
-    float cos = disty / hypotenuse;
+    double sin = distx / hypotenuse;
+    double cos = disty / hypotenuse;
         if (hypotenuse < sphere1->radius + sphere2->radius)
         {
-            float Vn1 = sphere2->vx * sin + sphere2->vy * cos;
-      		float Vn2 = sphere1->vx * sin + sphere1->vy * cos;
-      		float Vt1 = - sphere2->vx * cos +sphere2->vy * sin;
-      		float Vt2 = - sphere1->vx * cos + sphere1->vy * sin;
-      		float dt = (sphere2->radius + sphere1->radius - hypotenuse) / (Vn1 - Vn2);
+            double Vn1 = sphere2->vx * sin + sphere2->vy * cos;
+      		double Vn2 = sphere1->vx * sin + sphere1->vy * cos;
+      		double Vt1 = - sphere2->vx * cos +sphere2->vy * sin;
+            double Vt2 = - sphere1->vx * cos + sphere1->vy * sin;
+      		double dt = (sphere2->radius + sphere1->radius - hypotenuse) / (Vn1 - Vn2);
 
       		if (dt > 0.5)
       		{
@@ -103,7 +103,7 @@ void collisionTwoSpheres(struct Sphere* sphere1, struct Sphere* sphere2)
       		distx = sphere1->x - sphere2->x;
       		disty = sphere1->y - sphere2->y;
 
-      		float back = Vn2;
+      		double back = Vn2;
       		Vn2 = Vn1;
       		Vn1 = back;
 
@@ -120,26 +120,26 @@ void resolveWallCollision(struct Sphere* sphere, int windowx, int windowy)
 {
     if (sphere->x < sphere->radius)
     {
-        sphere->x += -sphere->x +sphere->radius;
-        sphere->vx *= -1;
+        sphere->x += - sphere->x +sphere->radius;
+        sphere->vx = - sphere->vx;
     }
 
     if (sphere->x + sphere->radius > windowx)
     {
         sphere->x -= - fabs(windowx - sphere->x) + sphere->radius;
-        sphere->vx *= -1;
+        sphere->vx = - sphere->vx;
     }
 
     if (sphere->y < sphere->radius)
     {
-        sphere->y += -sphere->y +sphere->radius;
-        sphere->vy *= -1;
+        sphere->y += - sphere->y +sphere->radius;
+        sphere->vy = - sphere->vy;
     }
 
     if (sphere->y + sphere->radius > windowy)
     {
         sphere->y -= - fabs(windowy - sphere->y) + sphere->radius;
-        sphere->vy *= -1;
+        sphere->vy = - sphere->vy;
     }
 }
 
@@ -151,12 +151,12 @@ int main()
     struct Sphere particles[M];
     for (int i = 0; i < M; i++)
     {
-        particles[i].x = 10 + 14*i;
-        particles[i].y = 15 + 7*i;
+        particles[i].x = 50 + 14 * i;
+        particles[i].y = 100 + 10 * i;
         particles[i].radius = 5;
         particles[i].N = 100;
-        particles[i].vx = 1000;
-        particles[i].vy = 20;
+        particles[i].vx = 100;
+        particles[i].vy = 15 * i;
         particles[i].r = 255;
         particles[i].g = 0;
         particles[i].b = 255;
@@ -165,6 +165,8 @@ int main()
     txCreateWindow(windowx, windowy);
     txSetFillColor(RGB(0, 0, 0));
 
+    while(true)
+    {
         txClear();
 
         txBegin();
@@ -178,31 +180,32 @@ int main()
 
         for (int i = 0; i < M; i++)
         {
-            move(&particles[i]);
+            move(&particles[i], DT);
+        }
+
+        for (int i = 0; i < M; i++)
+        {
             checkCollision(&(particles[i]), windowx, windowy);
+        }
+
+       /* for (int i = 0; i < M; i++)
+        {
             resolveWallCollision(&(particles[i]), windowx, windowy);
+        } */
 
+        for (int i = 0; i < M; i++)
+        {
+            for (int j = i+1; j < M; j++)
 
-            if (checkTwoSpheres(&(particles[i]), &(particles[i+1])))
-            {
-                collisionTwoSpheres(&(particles[i]), &(particles[i+1]));
+                if (checkTwoSpheres(&(particles[i]), &(particles[j])))
+                {
+                    collisionTwoSpheres(&(particles[i]), &(particles[j]));
 
-            }
+                }
 
-            if (checkTwoSpheres(&(particles[i]), &(particles[i+2])))
-            {
-                collisionTwoSpheres(&(particles[i]), &(particles[i+2]));
-            }
+        }
 
-            if (checkTwoSpheres(&(particles[i+1]), &(particles[i+2])))
-            {
-                collisionTwoSpheres(&(particles[i+1]), &(particles[i+2]));
-
-            }
-
-            }
-
-
+    }
     return 0;
 
 }
