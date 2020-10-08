@@ -70,10 +70,11 @@ void collisionTwoSpheres(Sphere* sphere1,  Sphere* sphere2)
     float disty = sphere1->y - sphere2->y;
 
     float hypotenuse = sqrt(distx * distx + disty * disty);
-    if (hypotenuse == 0)
+
+   /* if (hypotenuse == 0)
     {
         hypotenuse = 0.01;
-    }
+    }   */
 
     float sin = distx / hypotenuse;
     float cos = disty / hypotenuse;
@@ -114,6 +115,32 @@ void collisionTwoSpheres(Sphere* sphere1,  Sphere* sphere2)
 
 }
 
+void resolveWallCollision(Sphere* sphere, int windowx, int windowy)
+{
+    if (sphere->x < sphere->radius)
+    {
+        sphere->x += -sphere->x +sphere->radius;
+        sphere->vx *= -1;
+    }
+
+    if (sphere->x + sphere->radius > windowx)
+    {
+        sphere->x -= - fabs(windowx - sphere->x) + sphere->radius;
+        sphere->vx *= -1;
+    }
+
+    if (sphere->y < sphere->radius)
+    {
+        sphere->y += -sphere->y +sphere->radius;
+        sphere->vy *= -1;
+    }
+
+    if (sphere->y + sphere->radius > windowy)
+    {
+        sphere->y -= - fabs(windowy - sphere->y) + sphere->radius;
+        sphere->vy *= -1;
+    }
+}
 
 int main()
 {
@@ -124,6 +151,12 @@ int main()
     Sphere s2 = { 510, 410, 50, 100, 800, 300, 255, 255, 255 };
     Sphere s3 = { 100, 500, 50, 100, 300, 300, 255, 0, 255 };
 
+    int points = 0;
+    std::cout << "The rules of the game are to catch up with the purple ball and run away from the red one";
+    std::cout << "\n";
+    std::cout << "Points: 0";
+    std::cout << "\n";
+
     txCreateWindow(windowx, windowy);
     txSetFillColor(RGB(0, 0, 0));
 
@@ -132,7 +165,7 @@ int main()
     double mouseOldx = 0;
     double mouseOldy = 0;
 
-    while (true)
+    while (points*points < 289)
     {
 
         mouseOldx = mousex;
@@ -165,20 +198,43 @@ int main()
         move(&s1);
         move(&s2);
         move(&s3);
+        resolveWallCollision(&s1, windowx, windowy);
+        resolveWallCollision(&s2, windowx, windowy);
+        resolveWallCollision(&s3, windowx, windowy);
 
         if (checkTwoSpheres(&s1, &s2))
         {
             collisionTwoSpheres(&s1, &s2);
+            points -= 1;
+            std::cout << "Points: ";
+            std::cout << points;
+            std::cout << "\n";
         }
         if (checkTwoSpheres(&s1, &s3))
         {
             collisionTwoSpheres(&s1, &s3);
+
         }
+
         if (checkTwoSpheres(&s2, &s3))
         {
             collisionTwoSpheres(&s2, &s3);
+            points += 1;
+            std::cout << "Points ";
+            std::cout << points;
+            std::cout << "\n";
         }
+
     }
+
+        if (points < 0)
+        {
+            std::cout << "LOSE";
+        }
+        else
+        {
+            std::cout << "WIN";
+        }
 
     return 0;
 
