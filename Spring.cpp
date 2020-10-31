@@ -24,8 +24,8 @@ int main()
         particles[i].ax = 0;
         particles[i].ay = 0;
         particles[i].r = 255;
-        particles[i].g = 255;
-        particles[i].b = 255;
+        particles[i].g = 0;
+        particles[i].b = 0;
         particles[i].m = 100000;
 
         j += 1;
@@ -40,28 +40,27 @@ int main()
         }
     }
 
-    struct Spring lines[3][3];
+    struct Spring lines[M-1][M-1];
+    for (int i = 0; i < M; i++ )
+    {
+        for (int j = 0; j < M; j++ )
+        {
+            if (i != j)
+            {
+                lines[i][j].k = 400;
+                lines[i][j].length = 10;
+            }
 
-    lines[0][0].k = 0;
-    lines[0][0].length = 0;
-    lines[0][1].k = 400;
-    lines[0][1].length = 10;
-    lines[0][2].k = 400;
-    lines[0][2].length = 15;
-    lines[1][0].k = 400;
-    lines[1][0].length = 10;
-    lines[1][1].k = 0;
-    lines[1][1].length = 0;
-    lines[1][2].k = 400;
-    lines[1][2].length = 20;
-    lines[2][0].k = 400;
-    lines[2][0].length = 25;
-    lines[2][1].k = 400;
-    lines[2][1].length = 20;
-    lines[2][2].k = 0;
-    lines[2][2].length = 0;
+            else
+            {
+                lines[i][j].k = 0;
+                lines[i][j].length = 0;
+            }
+        }
+    }
 
-    const double DT = 0.01;
+
+    const double DT = 0.001;
     txCreateWindow(windowx, windowy);
     txSetFillColor(RGB(0, 0, 0));
 
@@ -104,3 +103,4 @@ int main()
     return 0;
 
 }
+
