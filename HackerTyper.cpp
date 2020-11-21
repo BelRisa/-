@@ -87,16 +87,6 @@ int main()
 
 				pointer += 3;
 			}
-			if (event.type == sf::Event::MouseWheelScrolled)
-			{
-				if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel)
-				{
-					int a = event.mouseWheelScroll.delta;
-				
-					strInvisible -= a;
-				
-				}
-			}
 		}
 		
 		if (strInvisible > 0)
@@ -108,22 +98,19 @@ int main()
 					n -= 1;
 				if (n == 0)
 				{
-					bies = i;
+					s = i;
 					break;
 				}
 				if (i == visCode.strSize - 1)
-					bies = i;
+					s = i;
 			}
 		}
 		else
 		{
-			bies = 0;
+			s = 0;
 		}
+		visible.setString(visCode.str + sizeof(char) * s);
 
-		//std::cout << numberOfFirstStrInVisible << ' ' << bies << std::endl;
-		visible.setString(visCode.str + sizeof(char) * bies);
-		//std::cout << visCode << std::endl;
-		//std::cout << std::endl;
 
 		window.clear(fillColor);
 		window.draw(visible);
