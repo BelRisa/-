@@ -24,7 +24,7 @@ struct String
 			str[i] = strc[i];
 	}
 
-	String()
+	~String()
 	{
 		delete[] str;
 	}
