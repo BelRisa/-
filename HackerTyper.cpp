@@ -80,9 +80,8 @@ int main()
 			
 	}
 		
-        String newCode = buffer[p] + buffer[p] + 1]; 
-
-        Code += newCode; 
+        String newCode = buffer[p] + buffer[p + 1]; 
+	Code += newCode; 
 
 
 		window.clear(fillColor);
