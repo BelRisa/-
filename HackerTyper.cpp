@@ -59,10 +59,12 @@ int main()
 				Code += buffer[p];
 
 			
-            if (Code.countChar('\n'))
-            {
-				p += 2;
-            }
+            			if (Code.countChar('\n'))
+            			{
+					p += 2;
+            			}
+				String newCode = buffer[p] + buffer[p + 1]; 
+				Code += newCode;
             
 			}
 
@@ -80,8 +82,7 @@ int main()
 			
 	}
 		
-        String newCode = buffer[p] + buffer[p + 1]; 
-	Code += newCode; 
+ 
 
 
 		window.clear(fillColor);
