@@ -1,4 +1,4 @@
-#include "TXLib.h"
+#include <SFML/Graphics.hpp>
 #include <cmath>
 #include <cstdlib>
 #include "functions.h"
@@ -10,13 +10,12 @@ int main()
     int M = 4;
     int F = (M - 1) * M / 2;
 
-    Sphere[] particles = new Sphere(M);
+    Sphere* particles = new Sphere[M];
     int k = 1;
     int j = 0;
     for (int i = 0; i < M; i++)
     {
-        particles[i] = new particles();
-        particles {30, 30 * (2 * j + 1) + 5 * (j + 1), k * (5 + 2 * 30 + 30 * (i % 2)), 20, 0, 0, 0, 0, 255, 0, 0, 1000};
+        particles[i] = Sphere {30, 30 * (2 * j + 1) + 5 * (j + 1), k * (5 + 2 * 30 + 30 * (i % 2)), 20, 0, 0, 0, 0, 255, 0, 0, 1000};
 
         j += 1;
         if (particles[i].x > windowx - 3 * particles[i].radius - 10)
@@ -49,14 +48,19 @@ int main()
 
 
     const double DT = 0.01;
-    txCreateWindow(windowx, windowy);
-    txSetFillColor(RGB(0, 0, 0));
 
-    while(true)
+    sf::RenderWindow window(sf::VideoMode(windowx, windowy), "UwU");
+
+    while(window.isOpen())
     {
+        sf::Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+                window.close();
+        }
 
-        txBegin();
-        txClear();
+        window.clear();
 
         for (int i = 1; i < M; i++)
         {
@@ -67,7 +71,6 @@ int main()
             }
         }
 
-        txEnd();
 
         for (int i = 1; i < M; i++)
         {
@@ -88,10 +91,9 @@ int main()
         {
             particles[i].checkCollision();
         }
-
+        
+        window.display();
     }
     return 0;
 
 }
-
-
