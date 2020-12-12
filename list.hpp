@@ -19,7 +19,14 @@ public:
 
     ~List<T>()
 	{
-		this->erase();
+	    Node<T>* current = head;
+		while (current)
+		{
+			Node<T>* newcurrent = current->next;
+			delete current;
+			current = newcurrent;
+		}
+	
 	}
 
     void addNode(int d)       //метод, добавляющий новый узел в список
@@ -83,12 +90,65 @@ public:
     {
         if(head)
         {
-            Node<T>* newHead = head->next;
+            Node<T>* head1 = head->next;
             delete head;
-            head = newHead;
+            head = head1;
         }
     } 
-}
 
-    
-}
+    int searchByValue(T* value) 
+    {
+        int index = 0;
+        Node<T>* temp = new Node<T>;
+        temp->value = value;
+        temp = head;
+        while (temp->value != value)
+        {
+            index++;
+            temp = temp->next;
+        }
+        return index;
+    }
+
+    void insert(T* value, int index, int len)
+    {
+        Node<T>* newElem = new Node<T>;
+        newElem->value = value;
+        newElem->next = nullptr;
+        Node<T>* node = head;
+        for (int i = 0; i < index; i++)
+        {
+            node = node->next;
+        }
+        newElem->next = node->next;
+        node->next = newElem;
+        len++;
+    }
+
+    void removeByIndex(int index)
+	{
+		Node<T>* current = head;
+
+		for (int i = 0; i < index - 1; ++i)
+		{
+			assert(current);
+			current = current->next;
+		}
+		if (current->next != nullptr)
+		{
+			Node<T>* head1 = current->next->next; 
+			T newList = current->next->value; 
+			delete current->next;
+			current->next = head1;
+			return newList;		
+		}
+		else
+		{
+			Node<T>* head1 = 0;
+			T len = 0; 
+			delete current->next;
+			current->next = head1;
+		}			
+	}
+
+};
