@@ -5,31 +5,21 @@
 
 int main()
 {
-    int windowx = 1000;
-    int windowy = 600;
+    int windowx = 1200;
+    int windowy = 800;
     int M = 4;
     int F = (M - 1) * M / 2;
+    sf::RenderWindow window(sf::VideoMode(windowx, windowy), "UwU");
 
-    Sphere* particles = new Sphere[M];
-    int k = 1;
-    int j = 0;
-    for (int i = 0; i < M; i++)
-    {
-        particles[i] = Sphere {30, 30 * (2 * j + 1) + 5 * (j + 1), k * (5 + 2 * 30 + 30 * (i % 2)), 20, 0, 0, 0, 0, 255, 0, 0, 1000};
 
-        j += 1;
-        if (particles[i].x > windowx - 3 * particles[i].radius - 10)
-        {
-            k += 1;
-            j = 0;
-        }
-        if (particles[i].y > windowy - 3 * particles[i].radius - 10)
-        {
-            break;
-        }
-    }
+    Sphere particles[M];
+    Spring lines[M][M];
 
-    //Spring lines[M][M];
+    particles[0] = Sphere{ (200, 200), (0, 0), (0, 0), 10, 10, 255, 255, 255};
+	particles[1] = Sphere{ (200, 400), (0, 0), (0, 0), 10, 10, 255, 255, 255};
+	particles[2] = Sphere{ (600, 200), (0, 0), (0, 0), 10, 10, 255, 255, 255};
+	particles[3] = Sphere{ (600, 600), (0, 0), (0, 0), 10, 10, 255, 255, 255};
+
     for (int i = 0; i < M; i++ )
     {
         for (int j = 0; j < M; j++ )
@@ -49,25 +39,27 @@ int main()
 
     const double DT = 0.01;
 
-    sf::RenderWindow window(sf::VideoMode(windowx, windowy), "UwU");
 
     while(window.isOpen())
     {
         sf::Event event;
+
+        window.clear();
         while (window.pollEvent(event))
         {
             if (event.type == sf::Event::Closed)
                 window.close();
         }
 
-        window.clear();
+        window.display();
+
 
         for (int i = 1; i < M; i++)
         {
-            particles[i].draw();
+            particles[i].drawSphere(&window, M);
             for (int j = i + 1; j < M; j++)
             {
-                drawlines(particles[i], particles[j], lines[i][j]);
+                lines[i][j].drawlines(particles[i], particles[j], &window);
             }
         }
 
@@ -76,23 +68,22 @@ int main()
         {
             for (int j = i + 1; j < M; j++)
             {
-                acc(particles[i], particles[j], lines[i][j])
+                acc(&particles[i], &particles[j], lines[i][j]);
             }
         }
 
         for (int i = 1; i < M; i++)
         {
-            particles[i].speed();
-            particles[i].move();
+            particles[i].speed(DT);
+            particles[i].move(DT);
             particles[i].zero_acc();
         }
 
         for (int i = 1; i < M; i++)
         {
-            particles[i].checkCollision();
+            checkCollision(&particles[i], &window, DT);
         }
-        
-        window.display();
+
     }
     return 0;
 
