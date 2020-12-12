@@ -1,146 +1,130 @@
 #define functions
+#include <iostream>
+#include <math.h>
+#include <cassert>
+#include "Vector.h"
+#include <SFML/Graphics.hpp>
+
 
 class Sphere
 {
 public:
-    double radius;
-    double x;
-    double y;
-    int N;
-    double vx;
-    double vy;
-    double ax;
-    double ay;
+    Vector coord = Vector(0, 0);
+    Vector velocity = Vector(0, 0);
+    Vector acceleration = Vector(0, 0);
+    float radius;
+    float m;
     int r;
     int g;
     int b;
-    int m;
 
-    void draw()
+    Sphere(Vector coord = Vector(0, 0), Vector velocity = Vector(0, 0), Vector acceleration = Vector(0, 0), float radius = 0, float m = 1, int r = 255, int g = 255, int b = 255)
     {
-        sf::CircleShape shape(10.f);
-        shape.setFillColor(sf::Color::Green);
-        shape.setPosition({ x, y });
-
+        this->coord = coord;
+        this->velocity = velocity;
+        this->acceleration = acceleration;
+        this->radius = radius;
+        this->m = m;
+        this->r = r;
+        this->g = g;
+        this->b = b;
     }
+
+
+    void drawSphere(sf::RenderWindow* window, const int M)
+    {   
+        float windowx = window->getSize().x;
+        float windowy = window->getSize().y;
+        sf::CircleShape circle(radius, 10);
+        //assert((coord.x > radius) & (coord.x + radius < windowx) & (coord.y > radius) & (coord.y + radius < windowy));
+        for (int i = 0; i < M; i++)
+        {
+            circle.setRadius(radius - radius * i / M);
+            circle.setPosition(coord.x - radius + 1.4 * radius * i / M, coord.y - radius + 0.6 * radius * i / M);
+            circle.setFillColor(sf::Color(r, g, b));
+            window->draw(circle);
+        }
+    }
+    
 
     void speed(const double DT)
     {
-        vx += ax * DT;
-        vy += ay * DT;
+        velocity = velocity + acceleration * DT;
     }
 
     void move(const double DT)
     {
-        x += vx * DT;
-        y += vy * DT;
+        coord = coord + velocity * DT;
     }
 
-    bool checkTwoSpheres(Sphere sphere1, Sphere sphere2)
+    bool checkCollisionTwoSpheres(const Sphere* sphere1, const Sphere* sphere2)
     {
-        if (sphere1.radius + sphere2.radius > sqrt(pow(sphere1.x - sphere2.x, 2)+ pow(sphere1.y - sphere2.y, 2)))
+        if (pow (sphere1->radius + sphere2->radius, 2) > pow(sphere1->coord.x - sphere2->coord.x, 2)+ pow(sphere1->coord.y - sphere2->coord.y, 2))
         {
             return true;
         }
         return false;
     }
 
-    void collisionTwoSpheres(Sphere sphere1, Sphere sphere2)
+    void collideSpheres(Sphere* sphere1, Sphere* sphere2)
     {
-        double distx = sphere1.x - sphere2.x;
-        double disty = sphere1.y - sphere2.y;
+        double distx = sphere1->coord.x - sphere2->coord.x;
+        double disty = sphere1->coord.y - sphere2->coord.y;
 
         double hypotenuse = sqrt(distx * distx + disty * disty);
 
         double sin = distx / hypotenuse;
         double cos = disty / hypotenuse;
-            if (hypotenuse < sphere1.radius + sphere2.radius)
+        if (hypotenuse < sphere1->radius + sphere2->radius)
+        {
+            double Vn1 = sphere2->velocity.x * sin + sphere2->velocity.y * cos;
+            double Vn2 = sphere1->velocity.x * sin + sphere1->velocity.y * cos;
+            double Vt1 = - sphere2->velocity.x * cos +sphere2->velocity.y * sin;
+            double Vt2 = - sphere1->velocity.x * cos + sphere1->velocity.y * sin;
+            double dt = (sphere2->radius + sphere1->radius - hypotenuse) / (Vn1 - Vn2);
+
+            if (dt > 0.5)
             {
-                double Vn1 = sphere2.vx * sin + sphere2.vy * cos;
-                double Vn2 = sphere1.vx * sin + sphere1.vy * cos;
-                double Vt1 = - sphere2.vx * cos +sphere2.vy * sin;
-                double Vt2 = - sphere1.vx * cos + sphere1.vy * sin;
-                double dt = (sphere2.radius + sphere1.radius - hypotenuse) / (Vn1 - Vn2);
-
-                if (dt > 0.5)
-                {
-                    dt = 0.5;
-                }
-                if (dt < - 0.5)
-                {
-                    dt = - 0.5;
-                }
-                sphere1.x = sphere1.x - sphere1.vx * dt;
-                sphere1.y = sphere1.y - sphere1.vy * dt;
-                sphere2.x = sphere2.x - sphere2.vx * dt;
-                sphere2.y = sphere2.y - sphere2.vy * dt;
-
-                distx = sphere1.x - sphere2.x;
-                disty = sphere1.y - sphere2.y;
-
-                double back = Vn2;
-                Vn2 = Vn1;
-                Vn1 = back;
-
-
-                sphere1.vx = Vn2 * sin - Vt2 * cos;
-                sphere1.vy = Vn2 * cos + Vt2 * sin;
-                sphere2.vx = Vn1 * sin - Vt1 * cos;
-                sphere2.vy = Vn1 * cos + Vt1 * sin;
+                dt = 0.5;
             }
+            if (dt < - 0.5)
+            {
+                dt = - 0.5;
+            }
+            sphere1->coord.x = sphere1->coord.x - sphere1->velocity.x * dt;
+            sphere1->coord.y = sphere1->coord.y - sphere1->velocity.y * dt;
+            sphere2->coord.x = sphere2->coord.x - sphere2->velocity.x * dt;
+            sphere2->coord.y = sphere2->coord.y - sphere2->velocity.y * dt;
+
+            distx = sphere1->coord.x - sphere2->coord.x;
+            disty = sphere1->coord.y - sphere2->coord.y;
+
+            double back = Vn2;
+            Vn2 = Vn1;
+            Vn1 = back;
+
+
+            sphere1->velocity.x = Vn2 * sin - Vt2 * cos;
+            sphere1->velocity.y = Vn2 * cos + Vt2 * sin;
+            sphere2->velocity.x = Vn1 * sin - Vt1 * cos;
+            sphere2->velocity.y = Vn1 * cos + Vt1 * sin;
+        }
 
     }
 
-    void resolveWallCollision(Sphere sphere, int windowx, int windowy)
-    {
-        if (sphere.x < sphere.radius)
-        {
-            sphere.x += - sphere.x + sphere.radius;
-            sphere.vx = - sphere.vx;
-        }
 
-        if (sphere.x + sphere.radius > windowx)
-        {
-            sphere.x -= - fabs(windowx - sphere.x) + sphere.radius;
-            sphere.vx = - sphere.vx;
-        }
 
-        if (sphere.y < sphere.radius)
-        {
-            sphere.y += - sphere.y +sphere.radius;
-            sphere.vy = - sphere.vy;
-        }
 
-        if (sphere.y + sphere.radius > windowy)
-        {
-            sphere.y -= - fabs(windowy - sphere.y) + sphere.radius;
-            sphere.vy = - sphere.vy;
-        }
-    }
 
-    void checkCollision(Sphere sphere, int windowx, int windowy)
-    {
 
-        if ((sphere.x > windowx - sphere.radius) or (sphere.x < sphere.radius))
-        {
-            sphere.vx = - sphere.vx;
-        }
-
-        if ((sphere.y > windowy - sphere.radius) or (sphere.y < sphere.radius))
-        {
-            sphere.vy = - sphere.vy;
-        }
-    }
-
-    friend void acc(Sphere* sphere1, Sphere* sphere2, Spring spring);
+    //friend void acc(Sphere* sphere1, Sphere* sphere2, Spring spring);
 
     void zero_acc()
     {
-        ax = 0;
-        ay = 0;
+        acceleration = 0;
     }
     
-    friend void drawlines(Sphere sphere1, Sphere sphere2, Spring spring);
+    //friend void drawlines(Sphere sphere1, Sphere sphere2, Spring spring);
 
 };
 
@@ -152,46 +136,66 @@ public:
     friend void acc(Sphere* sphere1, Sphere* sphere2, Spring spring);
     friend void drawlines(Sphere sphere1, Sphere sphere2, Spring spring);
 
+    void drawlines(Sphere sphere1, Sphere sphere2, sf::RenderWindow* window)
+    {
+        float stickx = window->getSize().x;
+        float sticky = window->getSize().y;
+        sf::RectangleShape rectangle(sf::Vector2f(100.f, 10.f));
+        rectangle.setPosition({ stickx, sticky });
+        rectangle.setFillColor(sf::Color::Blue);
+        window->draw(rectangle);
+    }
+
 };
 
-//void acc(struct Sphere*, struct Spring);
-//void speed(struct Sphere*, double DT);
-//void draw(struct Sphere);
-//void drawlines(struct Sphere sphere1, struct Sphere sphere2, struct Spring spring);
-//void move(struct Sphere* , double DT);
-//void checkCollision(struct Sphere* , int windowx, int windowy);
-//void collisionTwoSpheres(struct Sphere* , struct Sphere* );
-//void resolveWallCollision(struct Sphere* , int windowx, int windowy);
-
-void acc(Sphere* sphere1, Sphere* sphere2, Spring spring)
+    void acc(Sphere* sphere1, Sphere* sphere2, Spring spring)
     {
-        double dist = sqrt((sphere1->x - sphere2->x) * (sphere1->x - sphere2->x) + (sphere1->y - sphere2->y) * (sphere1->y - sphere2->y));
-        if (sphere1->x < sphere2->x)
+        double dist = sqrt((sphere1->coord.x - sphere2->coord.x) * (sphere1->coord.x - sphere2->coord.x) + (sphere1->coord.y - sphere2->coord.y) * (sphere1->coord.y - sphere2->coord.y));
+        if (sphere1->coord.x < sphere2->coord.x)
         {
-            sphere1->ax += spring.k * (dist - spring.length) / sphere1->m;
-            sphere2->ax -= spring.k * (dist - spring.length) / sphere2->m;
+            sphere1->acceleration.x += spring.k * (dist - spring.length) / sphere1->m;
+            sphere2->acceleration.x -= spring.k * (dist - spring.length) / sphere2->m;
         }
-        if (sphere1->x > sphere2->x)
+        if (sphere1->coord.x > sphere2->coord.x)
         {
-            sphere1->ax -= spring.k * (dist - spring.length) / sphere1->m;
-            sphere2->ax += spring.k * (dist - spring.length) / sphere2->m;
+            sphere1->acceleration.x -= spring.k * (dist - spring.length) / sphere1->m;
+            sphere2->acceleration.x += spring.k * (dist - spring.length) / sphere2->m;
         }
-        if (sphere1->y < sphere2->y)
+        if (sphere1->coord.y < sphere2->coord.y)
         {
-            sphere1->ay += spring.k * (dist - spring.length) / sphere1->m;
-            sphere2->ay -= spring.k * (dist - spring.length) / sphere2->m;
+            sphere1->acceleration.y += spring.k * (dist - spring.length) / sphere1->m;
+            sphere2->acceleration.y -= spring.k * (dist - spring.length) / sphere2->m;
         }
-        if (sphere1->x > sphere2->x)
+        if (sphere1->coord.x > sphere2->coord.x)
         {
-            sphere1->ay -= spring.k * (dist - spring.length) / sphere1->m;
-            sphere2->ay += spring.k * (dist - spring.length) / sphere2->m;
+            sphere1->acceleration.y -= spring.k * (dist - spring.length) / sphere1->m;
+            sphere2->acceleration.y += spring.k * (dist - spring.length) / sphere2->m;
         }
     }
 
 
-void drawlines(Sphere sphere1, Sphere sphere2, Spring spring)
+    void checkCollision(Sphere* sphere, sf::RenderWindow* window, const float DT)
     {
-        sf::RectangleShape rectangle(sf::Vector2f(100.f, 10.f));
-        rectangle.setPosition({ stickx, sticky });
-        rectangle.setFillColor(sf::Color::Blue);
+        float windowx = window->getSize().x;
+        float windowy = window->getSize().y;
+        if (sphere->coord.x + sphere->velocity.x * DT + sphere->radius > windowx)
+        {
+            sphere->velocity.x *= -1;
+            sphere->coord.x = 2 * windowx - sphere->coord.x - 2 * sphere->radius;
+        }
+        if (sphere->coord.x + sphere->velocity.x * DT - sphere->radius < 0)
+        {
+            sphere->velocity.x *= -1;
+            sphere->coord.x = -sphere->coord.x + 2 * sphere->radius;
+        }
+        if (sphere->coord.y + sphere->velocity.y * DT + sphere->radius > windowy)
+        {
+            sphere->velocity.y *= -1;
+            sphere->coord.y = 2 * windowy - sphere->coord.y - 2 * sphere->radius;
+        }
+        if (sphere->coord.y + sphere->velocity.y * DT - sphere->radius < 0)
+        {
+            sphere->velocity.y *= -1;
+            sphere->coord.y = -sphere->coord.y + 2 * sphere->radius;
+        }
     }
